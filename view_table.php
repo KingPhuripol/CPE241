@@ -41,4 +41,6 @@ echo "<label>Enter Values (comma-separated):</label>";
 echo "<input type='text' name='values' required>"; 
 echo "<button type='submit'>Insert</button>"; 
 echo "</form>"; 
+
+echo "<br><a href='index.php'><button>Back</button></a>";
 ?>
