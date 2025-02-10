@@ -3,42 +3,32 @@ include 'db.php';
  
 if ($_SERVER["REQUEST_METHOD"] == "POST") { 
     $table = $_POST['table']; 
+    $values = explode(",", $_POST['values']); 
  
-    echo "<h2>Data from Table: $table</h2>"; 
- 
-    // Fetch table records 
-    $query = "SELECT * FROM `$table`"; 
+    // Fetch column names 
+    $query = "SHOW COLUMNS FROM `$table`"; 
     $result = $conn->query($query); 
+    $columns = []; 
  
-    if ($result->num_rows > 0) { 
-        echo "<table border='1'><tr>"; 
+    while ($row = $result->fetch_assoc()) { 
+        $columns[] = $row['Field']; 
+    } 
  
-        // Get table column names 
-        while ($column = $result->fetch_field()) { 
-            echo "<th>{$column->name}</th>"; 
-        } 
-        echo "</tr>"; 
+    // Ensure number of values matches number of columns 
+    if (count($values) !== count($columns)) { 
+        die("Error: Number of values does not match the number of columns."); 
+    } 
  
-        // Fetch and display table data 
-        while ($row = $result->fetch_assoc()) { 
-            echo "<tr>"; 
-            foreach ($row as $value) { 
-                echo "<td>$value</td>"; 
-            } 
-            echo "</tr>"; 
-        } 
-        echo "</table>"; 
+    // Construct query 
+    $values = array_map('trim', $values); 
+    $values = "'" . implode("', '", $values) . "'"; 
+    $columns = implode(", ", $columns); 
+    $query = "INSERT INTO `$table` ($columns) VALUES ($values)"; 
+ 
+    if ($conn->query($query)) { 
+        echo "Record inserted successfully!"; 
     } else { 
-        echo "No records found."; 
+        echo "Error inserting record: " . $conn->error; 
     } 
 } 
- 
-// Provide an insertion form 
-echo "<h2>Insert Data</h2>"; 
-echo "<form method='POST' action='insert_data.php'>"; 
-echo "<input type='hidden' name='table' value='$table'>"; 
-echo "<label>Enter Values (comma-separated):</label>"; 
-echo "<input type='text' name='values' required>"; 
-echo "<button type='submit'>Insert</button>"; 
-echo "</form>"; 
 ?>
